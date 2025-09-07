@@ -96,10 +96,15 @@ export interface IStorage {
   // Issue Report operations
   createIssueReport(report: InsertIssueReport): Promise<IssueReport>;
   getIssueReportsByUser(userId: string): Promise<IssueReport[]>;
+  getAllIssueReports(): Promise<IssueReport[]>;
 
   // Comment operations
   createComment(comment: InsertQuestionComment): Promise<QuestionComment>;
   getCommentsByQuestion(questionId: number): Promise<QuestionComment[]>;
+  
+  // Admin operations
+  getAllQuestionsForAdmin(): Promise<any[]>;
+  updateQuestion(questionId: number, questionData: any): Promise<any>;
 
   // Test session operations
   // createTestSession(session: InsertTestSession): Promise<TestSession>;
@@ -574,6 +579,41 @@ export class DatabaseStorage implements IStorage {
       .from(questionComments)
       .where(eq(questionComments.questionId, questionId))
       .orderBy(desc(questionComments.createdAt));
+  }
+
+  // Admin operations implementation
+  async getAllIssueReports(): Promise<IssueReport[]> {
+    const reports = await db
+      .select()
+      .from(issueReports)
+      .orderBy(desc(issueReports.createdAt));
+    return reports;
+  }
+
+  async getAllQuestionsForAdmin(): Promise<any[]> {
+    const questionsData = await db
+      .select()
+      .from(questions)
+      .orderBy(asc(questions.id))
+      .limit(100); // Limit to first 100 questions for performance
+    return questionsData;
+  }
+
+  async updateQuestion(questionId: number, questionData: any): Promise<any> {
+    const [updatedQuestion] = await db
+      .update(questions)
+      .set({
+        question_text: questionData.question_text,
+        option_a: questionData.option_a,
+        option_b: questionData.option_b,
+        option_c: questionData.option_c,
+        option_d: questionData.option_d,
+        correct_answer: questionData.correct_answer,
+        explanation_text: questionData.explanation_text,
+      })
+      .where(eq(questions.id, questionId))
+      .returning();
+    return updatedQuestion;
   }
 }
 
