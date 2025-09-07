@@ -202,7 +202,7 @@ export default function GenericSectionTest({
   };
 
   // Get current question for comments  
-  const currentQuestionForComments = questions?.[currentQuestionIndex];
+  const currentQuestionForComments = questions?.[currentQuestionIndex] as any;
   
   // Fetch comments for current question
   const { data: comments = [], refetch: refetchComments } = useQuery({
@@ -838,6 +838,8 @@ export default function GenericSectionTest({
                               </Button>
                             );
                           })}
+                          </>
+                        )}
                       </div>
 
                       {/* Show explanation immediately when answer is selected */}
@@ -888,7 +890,7 @@ export default function GenericSectionTest({
                           <Label htmlFor="edit-explanation">Explanation</Label>
                           <RichTextEditor
                             value={editFormData.explanation_text}
-                            onChange={(value) => setEditFormData(prev => ({...prev, explanation_text: value}))}
+                            onChange={(value: string) => setEditFormData(prev => ({...prev, explanation_text: value}))}
                             placeholder="Enter explanation with formatting..."
                           />
                         </div>
@@ -941,12 +943,12 @@ export default function GenericSectionTest({
                       </div>
 
                       <div className="space-y-4">
-                        {comments.length === 0 ? (
+                        {(comments as any[]).length === 0 ? (
                           <p className="text-gray-500 text-center py-4">
                             No comments yet. Be the first to comment!
                           </p>
                         ) : (
-                          comments.map((comment: any) => (
+                          (comments as any[]).map((comment: any) => (
                           <div
                             key={comment.id}
                             className="border rounded-lg p-4"

@@ -13,6 +13,6 @@ export function useAuth() {
     user,
     isLoading,
     isAuthenticated,
-    isAdmin: !!user?.isAdmin,
+    isAdmin: !!(user as any)?.isAdmin,
   };
 }
