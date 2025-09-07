@@ -657,71 +657,172 @@ export default function GenericSectionTest({
                   <TabsContent value="question" className="mt-4">
                     <div className="space-y-6">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
-                        <h2 className="text-lg sm:text-xl font-semibold leading-relaxed flex-1">
-                          #{currentQuestion.sequence}.{" "}
-                          {currentQuestion.question_text}
-                        </h2>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReportIssue(currentQuestion.id)}
-                          className="flex-shrink-0"
-                        >
-                          <Flag className="h-4 w-4 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">Report</span>
-                        </Button>
+                        {editingQuestionId === currentQuestion.id ? (
+                          <div className="flex-1 space-y-4">
+                            <Label htmlFor="edit-question">Question Text</Label>
+                            <Textarea
+                              id="edit-question"
+                              value={editFormData.question_text}
+                              onChange={(e) => setEditFormData(prev => ({...prev, question_text: e.target.value}))}
+                              rows={3}
+                            />
+                          </div>
+                        ) : (
+                          <h2 className="text-lg sm:text-xl font-semibold leading-relaxed flex-1">
+                            #{currentQuestion.sequence}.{" "}
+                            {currentQuestion.question_text}
+                          </h2>
+                        )}
+                        <div className="flex gap-2 flex-shrink-0">
+                          {isAdmin && (
+                            <>
+                              {editingQuestionId === currentQuestion.id ? (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={saveQuestion}
+                                    disabled={updateQuestionMutation.isPending}
+                                  >
+                                    <Save className="h-4 w-4 mr-1" />
+                                    Save
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={cancelEditing}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Cancel
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => startEditing(currentQuestion)}
+                                >
+                                  <Edit className="h-4 w-4 mr-1 sm:mr-2" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleReportIssue(currentQuestion.id)}
+                            className="flex-shrink-0"
+                          >
+                            <Flag className="h-4 w-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Report</span>
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="space-y-3">
-                        {[
-                          { key: "A", text: currentQuestion.option_a },
-                          { key: "B", text: currentQuestion.option_b },
-                          { key: "C", text: currentQuestion.option_c },
-                          { key: "D", text: currentQuestion.option_d },
-                        ]
-                          .filter((option) => option.text) // Only show options that have text
-                          .map((option) => {
-                            const isSelected =
-                              selectedAnswers[currentQuestion.id] === option.key;
-                            const isCorrect =
-                              currentQuestion.correct_answer === option.key;
-                            const hasAnswered =
-                              currentQuestion.id in selectedAnswers;
-                            const isSingleOption = currentQuestion.is_single_option;
+                        {editingQuestionId === currentQuestion.id ? (
+                          <div className="space-y-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label htmlFor="edit-option-a">Option A</Label>
+                                <Input
+                                  id="edit-option-a"
+                                  value={editFormData.option_a}
+                                  onChange={(e) => setEditFormData(prev => ({...prev, option_a: e.target.value}))}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="edit-option-b">Option B</Label>
+                                <Input
+                                  id="edit-option-b"
+                                  value={editFormData.option_b}
+                                  onChange={(e) => setEditFormData(prev => ({...prev, option_b: e.target.value}))}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="edit-option-c">Option C</Label>
+                                <Input
+                                  id="edit-option-c"
+                                  value={editFormData.option_c}
+                                  onChange={(e) => setEditFormData(prev => ({...prev, option_c: e.target.value}))}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="edit-option-d">Option D</Label>
+                                <Input
+                                  id="edit-option-d"
+                                  value={editFormData.option_d}
+                                  onChange={(e) => setEditFormData(prev => ({...prev, option_d: e.target.value}))}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="edit-correct">Correct Answer</Label>
+                                <select
+                                  id="edit-correct"
+                                  value={editFormData.correct_answer}
+                                  onChange={(e) => setEditFormData(prev => ({...prev, correct_answer: e.target.value}))}
+                                  className="w-full p-2 border rounded-md"
+                                >
+                                  <option value="A">A</option>
+                                  <option value="B">B</option>
+                                  <option value="C">C</option>
+                                  <option value="D">D</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            {[
+                              { key: "A", text: currentQuestion.option_a },
+                              { key: "B", text: currentQuestion.option_b },
+                              { key: "C", text: currentQuestion.option_c },
+                              { key: "D", text: currentQuestion.option_d },
+                            ]
+                              .filter((option) => option.text) // Only show options that have text
+                              .map((option) => {
+                                const isSelected =
+                                  selectedAnswers[currentQuestion.id] === option.key;
+                                const isCorrect =
+                                  currentQuestion.correct_answer === option.key;
+                                const hasAnswered =
+                                  currentQuestion.id in selectedAnswers;
+                                const isSingleOption = currentQuestion.is_single_option;
 
-                            let buttonClass = "";
-                            if (hasAnswered) {
-                              if (isSelected && !isCorrect) {
-                                buttonClass =
-                                  "bg-red-500 text-white border-red-500";
-                              } else if (isCorrect || (isSingleOption && isSelected)) {
-                                buttonClass =
-                                  "bg-green-500 text-white border-green-500";
-                              } else {
-                                buttonClass = "bg-gray-100 text-gray-600";
-                              }
-                            } else {
-                              buttonClass = isSelected
-                                ? "bg-blue-600 text-white"
-                                : "bg-white text-black hover:bg-gray-50";
-                            }
-
-                            return (
-                              <Button
-                                key={option.key}
-                                variant="outline"
-                                className={cn(
-                                  "w-full text-left justify-start p-3 sm:p-4 h-auto min-h-[3rem] whitespace-normal break-words",
-                                  buttonClass,
-                                )}
-                                onClick={() =>
-                                  handleAnswerSelect(
-                                    currentQuestion.id,
-                                    option.key,
-                                  )
+                                let buttonClass = "";
+                                if (hasAnswered) {
+                                  if (isSelected && !isCorrect) {
+                                    buttonClass =
+                                      "bg-red-500 text-white border-red-500";
+                                  } else if (isCorrect || (isSingleOption && isSelected)) {
+                                    buttonClass =
+                                      "bg-green-500 text-white border-green-500";
+                                  } else {
+                                    buttonClass = "bg-gray-100 text-gray-600";
+                                  }
+                                } else {
+                                  buttonClass = isSelected
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white text-black hover:bg-gray-50";
                                 }
-                                disabled={hasAnswered}
-                              >
+
+                                return (
+                                  <Button
+                                    key={option.key}
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full text-left justify-start p-3 sm:p-4 h-auto min-h-[3rem] whitespace-normal break-words",
+                                      buttonClass,
+                                    )}
+                                    onClick={() =>
+                                      handleAnswerSelect(
+                                        currentQuestion.id,
+                                        option.key,
+                                      )
+                                    }
+                                    disabled={hasAnswered}
+                                  >
                                 <span className="font-semibold mr-2 sm:mr-3 flex-shrink-0">
                                   {isSingleOption ? "" : `${option.key}.`}
                                 </span>
@@ -782,22 +883,34 @@ export default function GenericSectionTest({
 
                   <TabsContent value="explanation" className="mt-4">
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Explanation</h3>
-                      {currentQuestion.explanation_text ||
-                      currentQuestion.explanation ? (
-                        <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
-                          {/* <p>{currentQuestion.explanation_text || currentQuestion.explanation}</p> */}
-                          <div
-                            className="text-gray-800 dark:text-gray-200"
-                            dangerouslySetInnerHTML={{
-                              __html: currentQuestion.explanation_text,
-                            }}
+                      {isAdmin && editingQuestionId === currentQuestion.id ? (
+                        <div className="space-y-4">
+                          <Label htmlFor="edit-explanation">Explanation</Label>
+                          <RichTextEditor
+                            value={editFormData.explanation_text}
+                            onChange={(value) => setEditFormData(prev => ({...prev, explanation_text: value}))}
+                            placeholder="Enter explanation with formatting..."
                           />
                         </div>
                       ) : (
-                        <p className="text-gray-500">
-                          No explanation available for this question.
-                        </p>
+                        <>
+                          <h3 className="text-lg font-semibold">Explanation</h3>
+                          {currentQuestion.explanation_text ||
+                          currentQuestion.explanation ? (
+                            <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div
+                                className="text-gray-800 dark:text-gray-200"
+                                dangerouslySetInnerHTML={{
+                                  __html: currentQuestion.explanation_text,
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <p className="text-gray-500">
+                              No explanation available for this question.
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </TabsContent>
