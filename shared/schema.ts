@@ -120,6 +120,7 @@ export const users = pgTable("users", {
   themePreference: varchar("theme_preference", { length: 10 }).default('light'),
   passwordHash: varchar("password_hash"),
   username: varchar("username").unique(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
