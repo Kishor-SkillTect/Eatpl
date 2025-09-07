@@ -96,7 +96,7 @@ export interface IStorage {
   // Issue Report operations
   createIssueReport(report: InsertIssueReport): Promise<IssueReport>;
   getIssueReportsByUser(userId: string): Promise<IssueReport[]>;
-  getAllIssueReports(): Promise<IssueReport[]>;
+  // getAllIssueReports(): Promise<IssueReport[]>;
 
   // Comment operations
   createComment(comment: InsertQuestionComment): Promise<QuestionComment>;
@@ -593,11 +593,11 @@ export class DatabaseStorage implements IStorage {
       .limit(limit)
       .offset(offset);
       
-    const [{ count }] = await db
+    const [{ count: totalCount }] = await db
       .select({ count: count() })
       .from(issueReports);
       
-    return { reports, total: Number(count) };
+    return { reports, total: Number(totalCount) };
   }
 
   async getAllQuestionsForAdmin(
