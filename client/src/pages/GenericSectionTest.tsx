@@ -32,10 +32,12 @@ import DOMPurify from "dompurify";
 
 interface GenericSectionTestProps {
   quizData: any;
+  sectionName: string;
 }
 
 export default function GenericSectionTest({
   quizData,
+  sectionName,
 }: GenericSectionTestProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, string>
@@ -323,7 +325,6 @@ export default function GenericSectionTest({
   );
   const currentQuestion: any = sortedQuestions[currentQuestionIndex] || {};
   const score = calculateScore();
-  const sectionName = quizData.length > 0 ? quizData[0].topicName : "Quiz"; 
   
   if (showResults) {
     return (

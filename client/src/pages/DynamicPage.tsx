@@ -54,6 +54,7 @@ export default function DynamicPage() {
   }
   console.log("link....", link[0])
   console.log("subjects....", subjects)
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-blue-800">
       <div className="max-w-4xl mx-auto px-4 py-20">
@@ -87,7 +88,7 @@ export default function DynamicPage() {
           </div>
         }
         {subjects?.type === "quiz" && isAuthenticated &&
-          <GenericSectionTest  quizData={subjects.data}/>
+          <GenericSectionTest  quizData={subjects.data} sectionName={subjects.sectionName}/>
         }
       </div>
     </div>
