@@ -103,7 +103,8 @@ export interface IStorage {
   getCommentsByQuestion(questionId: number): Promise<QuestionComment[]>;
   
   // Admin operations
-  getAllQuestionsForAdmin(): Promise<any[]>;
+  getAllIssueReports(page?: number, limit?: number): Promise<{ reports: IssueReport[], total: number }>;
+  getAllQuestionsForAdmin(page?: number, limit?: number, searchText?: string, hasEmptyExplanation?: boolean): Promise<{ questions: any[], total: number }>;
   updateQuestion(questionId: number, questionData: any): Promise<any>;
 
   // Test session operations
@@ -582,21 +583,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Admin operations implementation
-  async getAllIssueReports(): Promise<IssueReport[]> {
+  async getAllIssueReports(page: number = 1, limit: number = 50): Promise<{ reports: IssueReport[], total: number }> {
+    const offset = (page - 1) * limit;
+    
     const reports = await db
       .select()
       .from(issueReports)
-      .orderBy(desc(issueReports.createdAt));
-    return reports;
+      .orderBy(desc(issueReports.createdAt))
+      .limit(limit)
+      .offset(offset);
+      
+    const [{ count }] = await db
+      .select({ count: count() })
+      .from(issueReports);
+      
+    return { reports, total: Number(count) };
   }
 
-  async getAllQuestionsForAdmin(): Promise<any[]> {
-    const questionsData = await db
-      .select()
-      .from(questions)
+  async getAllQuestionsForAdmin(
+    page: number = 1, 
+    limit: number = 50, 
+    searchText?: string, 
+    hasEmptyExplanation?: boolean
+  ): Promise<{ questions: any[], total: number }> {
+    const offset = (page - 1) * limit;
+    
+    let query = db.select().from(questions);
+    let countQuery = db.select({ count: count() }).from(questions);
+    
+    // Add search filter if provided
+    if (searchText) {
+      const searchCondition = sql`${questions.text} ILIKE ${'%' + searchText + '%'}`;
+      query = query.where(searchCondition);
+      countQuery = countQuery.where(searchCondition);
+    }
+    
+    // Add empty explanation filter if requested
+    if (hasEmptyExplanation) {
+      const emptyExplanationCondition = sql`${questions.explanation} IS NULL OR ${questions.explanation} = ''`;
+      query = searchText ? query.and(emptyExplanationCondition) : query.where(emptyExplanationCondition);
+      countQuery = searchText ? countQuery.and(emptyExplanationCondition) : countQuery.where(emptyExplanationCondition);
+    }
+    
+    const questionsData = await query
       .orderBy(asc(questions.id))
-      .limit(100); // Limit to first 100 questions for performance
-    return questionsData;
+      .limit(limit)
+      .offset(offset);
+      
+    const [{ count: totalCount }] = await countQuery;
+    
+    return { questions: questionsData, total: Number(totalCount) };
   }
 
   async updateQuestion(questionId: number, questionData: any): Promise<any> {
