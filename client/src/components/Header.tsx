@@ -3,7 +3,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Plane, Users } from "@/components/Icons";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -29,7 +29,7 @@ const navigationItems = [
 export function Header() {
   const [location, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -184,6 +184,16 @@ export function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Manage Profile
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => setLocation("/admin")}
+                      data-testid="menu-admin"
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     className="cursor-pointer text-red-600 focus:text-red-600"
                     onClick={handleLogout}
