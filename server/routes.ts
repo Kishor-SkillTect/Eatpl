@@ -486,6 +486,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   //   }
   // });
 
+  // Admin routes
+  app.get('/api/admin/issue-reports', isAuthenticated, async (req: any, res) => {
+    try {
+      const reports = await storage.getAllIssueReports();
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching issue reports:", error);
+      res.status(500).json({ message: "Failed to fetch issue reports" });
+    }
+  });
+
+  app.get('/api/admin/questions', isAuthenticated, async (req: any, res) => {
+    try {
+      const questions = await storage.getAllQuestionsForAdmin();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
+  app.put('/api/admin/questions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const questionId = parseInt(req.params.id);
+      const questionData = req.body;
+      
+      const updatedQuestion = await storage.updateQuestion(questionId, questionData);
+      res.json(updatedQuestion);
+    } catch (error) {
+      console.error("Error updating question:", error);
+      res.status(500).json({ message: "Failed to update question" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
