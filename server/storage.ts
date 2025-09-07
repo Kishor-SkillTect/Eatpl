@@ -49,7 +49,7 @@ import {
 } from "../shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { eq, and, desc, avg, max, count, ne, asc } from "drizzle-orm";
+import { eq, and, desc, avg, max, count, ne, asc, sql } from "drizzle-orm";
 import { text } from "stream/consumers";
 
 export interface IStorage {
