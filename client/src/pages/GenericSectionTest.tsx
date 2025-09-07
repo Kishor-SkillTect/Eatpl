@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Clock,
   Flag,
@@ -25,9 +28,13 @@ import {
   Home,
   Calendar,
   Users,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import DOMPurify from "dompurify";
 
 interface GenericSectionTestProps {
@@ -59,7 +66,41 @@ export default function GenericSectionTest({
   });
   const [activeTab, setActiveTab] = useState("question");
   const [newComment, setNewComment] = useState("");
+  const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    question_text: '',
+    option_a: '',
+    option_b: '',
+    option_c: '',
+    option_d: '',
+    correct_answer: '',
+    explanation_text: ''
+  });
   const { toast } = useToast();
+  const { user, isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Mutation for updating questions (admin only)
+  const updateQuestionMutation = useMutation({
+    mutationFn: async (questionData: any) => {
+      await apiRequest('PUT', `/api/admin/questions/${questionData.id}`, questionData);
+    },
+    onSuccess: () => {
+      setEditingQuestionId(null);
+      toast({
+        title: "Success",
+        description: "Question updated successfully",
+      });
+      // Optionally refresh questions if needed
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update question",
+        variant: "destructive",
+      });
+    }
+  });
   
   // Get questions for this section
   // const { data: questions, isLoading } = useQuery<Question[]>({
@@ -123,6 +164,42 @@ export default function GenericSectionTest({
       return [];
     }
   }, [quizData]);
+
+  // Admin editing functions
+  const startEditing = (question: any) => {
+    setEditingQuestionId(question.id);
+    setEditFormData({
+      question_text: question.question_text || '',
+      option_a: question.option_a || '',
+      option_b: question.option_b || '',
+      option_c: question.option_c || '',
+      option_d: question.option_d || '',
+      correct_answer: question.correct_answer || '',
+      explanation_text: question.explanation_text || ''
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingQuestionId(null);
+    setEditFormData({
+      question_text: '',
+      option_a: '',
+      option_b: '',
+      option_c: '',
+      option_d: '',
+      correct_answer: '',
+      explanation_text: ''
+    });
+  };
+
+  const saveQuestion = () => {
+    if (editingQuestionId) {
+      updateQuestionMutation.mutate({
+        id: editingQuestionId,
+        ...editFormData
+      });
+    }
+  };
 
   // Get current question for comments  
   const currentQuestionForComments = questions?.[currentQuestionIndex];
