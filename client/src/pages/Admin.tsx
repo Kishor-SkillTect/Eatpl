@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
-import { Home, Edit, Eye, Calendar, User, MessageSquare } from "lucide-react";
+import { Home, Edit, Eye, Calendar, User, MessageSquare, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Admin() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
@@ -20,15 +21,59 @@ export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all issue reports
-  const { data: issueReports = [], isLoading: loadingReports } = useQuery({
-    queryKey: ['/api/admin/issue-reports'],
+  // Pagination and search state for issue reports
+  const [reportsPage, setReportsPage] = useState(1);
+
+  // Pagination and search state for questions
+  const [questionsPage, setQuestionsPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
+  const [hasEmptyExplanation, setHasEmptyExplanation] = useState(false);
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
+
+  // Debounce search text to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+      setQuestionsPage(1); // Reset to first page when searching
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Fetch issue reports with pagination
+  const { data: issueReportsData, isLoading: loadingReports } = useQuery({
+    queryKey: ['/api/admin/issue-reports', { page: reportsPage, limit: 50 }],
+    queryFn: ({ queryKey }) => {
+      const [, params] = queryKey as [string, { page: number; limit: number }];
+      return apiRequest('GET', `/api/admin/issue-reports?page=${params.page}&limit=${params.limit}`);
+    },
   });
 
-  // Fetch all questions for editing
-  const { data: questions = [], isLoading: loadingQuestions } = useQuery({
-    queryKey: ['/api/admin/questions'],
+  // Fetch questions with pagination and search
+  const { data: questionsData, isLoading: loadingQuestions } = useQuery({
+    queryKey: ['/api/admin/questions', { 
+      page: questionsPage, 
+      limit: 50, 
+      search: debouncedSearchText, 
+      hasEmptyExplanation 
+    }],
+    queryFn: ({ queryKey }) => {
+      const [, params] = queryKey as [string, { 
+        page: number; 
+        limit: number; 
+        search: string; 
+        hasEmptyExplanation: boolean 
+      }];
+      const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : '';
+      const emptyExplanationParam = params.hasEmptyExplanation ? '&hasEmptyExplanation=true' : '';
+      return apiRequest('GET', `/api/admin/questions?page=${params.page}&limit=${params.limit}${searchParam}${emptyExplanationParam}`);
+    },
   });
+
+  const issueReports = issueReportsData?.reports || [];
+  const issueReportsTotal = issueReportsData?.total || 0;
+  const questions = questionsData?.questions || [];
+  const questionsTotal = questionsData?.total || 0;
 
   // Mutation for updating questions
   const updateQuestionMutation = useMutation({
@@ -57,13 +102,13 @@ export default function Admin() {
   const handleEditQuestion = (question: any) => {
     setEditingQuestion({
       id: question.id,
-      question_text: question.question_text,
+      question_text: question.text,
       option_a: question.option_a,
       option_b: question.option_b,
       option_c: question.option_c,
       option_d: question.option_d,
       correct_answer: question.correct_answer,
-      explanation_text: question.explanation_text,
+      explanation_text: question.explanation,
     });
     setIsEditDialogOpen(true);
   };
@@ -160,6 +205,33 @@ export default function Admin() {
                             </CardContent>
                           </Card>
                         ))}
+                        
+                        {/* Pagination for Issue Reports */}
+                        {issueReportsTotal > 50 && (
+                          <div className="flex justify-center items-center gap-2 mt-6">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReportsPage(prev => Math.max(1, prev - 1))}
+                              disabled={reportsPage === 1}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              Previous
+                            </Button>
+                            <span className="text-sm text-gray-600">
+                              Page {reportsPage} of {Math.ceil(issueReportsTotal / 50)}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReportsPage(prev => prev + 1)}
+                              disabled={reportsPage >= Math.ceil(issueReportsTotal / 50)}
+                            >
+                              Next
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>
@@ -172,10 +244,41 @@ export default function Admin() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Edit className="h-5 w-5" />
-                      Questions ({questions.length})
+                      Questions ({questionsTotal})
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {/* Search and Filter Controls */}
+                    <div className="mb-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
+                          <Label htmlFor="search">Search Questions</Label>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="search"
+                              placeholder="Search by question text..."
+                              value={searchText}
+                              onChange={(e) => setSearchText(e.target.value)}
+                              className="pl-10"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-end">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="emptyExplanation"
+                              checked={hasEmptyExplanation}
+                              onCheckedChange={(checked) => setHasEmptyExplanation(!!checked)}
+                            />
+                            <Label htmlFor="emptyExplanation">
+                              Questions without explanation
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {loadingQuestions ? (
                       <div className="text-center py-8">Loading questions...</div>
                     ) : questions.length === 0 ? (
@@ -183,45 +286,74 @@ export default function Admin() {
                         No questions found.
                       </div>
                     ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Question</TableHead>
-                            <TableHead>Correct Answer</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {questions.map((question: any) => (
-                            <TableRow key={question.id}>
-                              <TableCell>{question.id}</TableCell>
-                              <TableCell className="max-w-md">
-                                <div className="truncate" title={question.question_text}>
-                                  {question.question_text}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="secondary">
-                                  {question.correct_answer}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditQuestion(question)}
-                                  >
-                                    <Edit className="h-3 w-3 mr-1" />
-                                    Edit
-                                  </Button>
-                                </div>
-                              </TableCell>
+                      <div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>ID</TableHead>
+                              <TableHead>Question</TableHead>
+                              <TableHead>Has Explanation</TableHead>
+                              <TableHead>Actions</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {questions.map((question: any) => (
+                              <TableRow key={question.id}>
+                                <TableCell>{question.id}</TableCell>
+                                <TableCell className="max-w-md">
+                                  <div className="truncate" title={question.text}>
+                                    {question.text}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={question.explanation ? "default" : "destructive"}>
+                                    {question.explanation ? "Yes" : "No"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditQuestion(question)}
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Edit
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        
+                        {/* Pagination for Questions */}
+                        {questionsTotal > 50 && (
+                          <div className="flex justify-center items-center gap-2 mt-6">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuestionsPage(prev => Math.max(1, prev - 1))}
+                              disabled={questionsPage === 1}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              Previous
+                            </Button>
+                            <span className="text-sm text-gray-600">
+                              Page {questionsPage} of {Math.ceil(questionsTotal / 50)}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuestionsPage(prev => prev + 1)}
+                              disabled={questionsPage >= Math.ceil(questionsTotal / 50)}
+                            >
+                              Next
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </CardContent>
                 </Card>

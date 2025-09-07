@@ -499,8 +499,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get('/api/admin/issue-reports', isAdmin, async (req: any, res) => {
     try {
-      const reports = await storage.getAllIssueReports();
-      res.json(reports);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const result = await storage.getAllIssueReports(page, limit);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching issue reports:", error);
       res.status(500).json({ message: "Failed to fetch issue reports" });
@@ -509,8 +512,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/questions', isAdmin, async (req: any, res) => {
     try {
-      const questions = await storage.getAllQuestionsForAdmin();
-      res.json(questions);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const searchText = req.query.search as string;
+      const hasEmptyExplanation = req.query.hasEmptyExplanation === 'true';
+      
+      const result = await storage.getAllQuestionsForAdmin(page, limit, searchText, hasEmptyExplanation);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
