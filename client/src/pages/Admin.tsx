@@ -43,10 +43,14 @@ export default function Admin() {
   // Fetch issue reports with pagination
   const { data: issueReportsData, isLoading: loadingReports } = useQuery({
     queryKey: ['/api/admin/issue-reports', { page: reportsPage, limit: 50 }],
-    queryFn: ({ queryKey }) => {
+    queryFn: async ({ queryKey }) => {
       const [, params] = queryKey as [string, { page: number; limit: number }];
-      return apiRequest('GET', `/api/admin/issue-reports?page=${params.page}&limit=${params.limit}`);
-    },
+      const res = await apiRequest('GET', `/api/admin/issue-reports?page=${params.page}&limit=${params.limit}`);
+      // If apiRequest returns a Response, parse it here
+      if (res instanceof Response) {
+        return await res.json();
+      }
+      return res;    },
   });
 
   // Fetch questions with pagination and search
@@ -57,7 +61,7 @@ export default function Admin() {
       search: debouncedSearchText, 
       hasEmptyExplanation 
     }],
-    queryFn: ({ queryKey }) => {
+    queryFn: async ({ queryKey }) => {
       const [, params] = queryKey as [string, { 
         page: number; 
         limit: number; 
@@ -66,8 +70,12 @@ export default function Admin() {
       }];
       const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : '';
       const emptyExplanationParam = params.hasEmptyExplanation ? '&hasEmptyExplanation=true' : '';
-      return apiRequest('GET', `/api/admin/questions?page=${params.page}&limit=${params.limit}${searchParam}${emptyExplanationParam}`);
-    },
+      const res = await apiRequest('GET', `/api/admin/questions?page=${params.page}&limit=${params.limit}${searchParam}${emptyExplanationParam}`);
+      // If apiRequest returns a Response, parse it here
+      if (res instanceof Response) {
+        return await res.json();
+      }
+      return res;    },
   });
 
   const issueReports = issueReportsData?.reports || [];
