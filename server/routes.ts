@@ -39,6 +39,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.status(401).json({ message: "Unauthorized" });
   };
 
+  // Admin middleware for admin-only routes
+  const isAdmin = (req: any, res: any, next: any) => {
+    if (req.session && req.session.userId && req.session.isAdmin) {
+      return next();
+    }
+    return res.status(403).json({ message: "Admin access required" });
+  };
+
   // Authentication routes
   app.post('/api/auth/signup', async (req: any, res) => {
     try {
@@ -47,6 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set up session
       req.session.userId = user.id;
+      req.session.isAdmin = user.isAdmin;
       
       // Don't return password hash
       const { passwordHash, ...userResponse } = user;
@@ -73,6 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set up session
       req.session.userId = user.id;
+      req.session.isAdmin = user.isAdmin;
       
       // Don't return password hash
       const { passwordHash, ...userResponse } = user;
@@ -487,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // });
 
   // Admin routes
-  app.get('/api/admin/issue-reports', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/issue-reports', isAdmin, async (req: any, res) => {
     try {
       const reports = await storage.getAllIssueReports();
       res.json(reports);
@@ -497,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/questions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/questions', isAdmin, async (req: any, res) => {
     try {
       const questions = await storage.getAllQuestionsForAdmin();
       res.json(questions);
@@ -507,7 +517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/admin/questions/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/admin/questions/:id', isAdmin, async (req: any, res) => {
     try {
       const questionId = parseInt(req.params.id);
       const questionData = req.body;
