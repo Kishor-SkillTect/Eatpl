@@ -50,6 +50,7 @@ import {
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { eq, and, desc, avg, max, count, ne, asc } from "drizzle-orm";
+import { text } from "stream/consumers";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -296,7 +297,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const topicQuizId = await db
-      .select({ id: topics.quizId })
+      .select({ id: topics.quizId, text: topics.text })
       .from(topics)
       .where(eq(topics.slug, name))
       .limit(1);
@@ -343,6 +344,7 @@ export class DatabaseStorage implements IStorage {
       return {
         type: "quiz",
         data: result2,
+        topicName: topicQuizId[0].text,
       };
     }
 
