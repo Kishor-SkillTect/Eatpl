@@ -323,14 +323,15 @@ export default function GenericSectionTest({
   );
   const currentQuestion: any = sortedQuestions[currentQuestionIndex] || {};
   const score = calculateScore();
-
+  const sectionName = quizData.length > 0 ? quizData[0].topicName : "Quiz"; 
+  
   if (showResults) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-blue-800">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-4">
-              {"sectionName"} - Results
+              {sectionName} - Results
             </h1>
             <Link href="/">
               <Button
@@ -436,7 +437,7 @@ export default function GenericSectionTest({
         <div className="max-w-4xl mx-auto px-4 py-20">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-white mb-6">
-              {"sectionName"}
+              {sectionName}
             </h1>
             <div className="text-white mb-8">
               <p className="text-xl mb-2">Ready to start the test?</p>
@@ -480,7 +481,7 @@ export default function GenericSectionTest({
                 <span className="hidden sm:inline">Back</span>
               </Button>
             </Link>
-            <h1 className="text-lg sm:text-xl font-bold text-white">{"sectionName"}</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white">{sectionName}</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 text-white">
             <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
