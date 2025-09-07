@@ -264,17 +264,31 @@ export default function Admin() {
                             />
                           </div>
                         </div>
-                        <div className="flex items-end">
+                        <div className="flex items-end gap-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id="emptyExplanation"
                               checked={hasEmptyExplanation}
-                              onCheckedChange={(checked) => setHasEmptyExplanation(!!checked)}
+                              onCheckedChange={(checked) => {
+                                setHasEmptyExplanation(!!checked);
+                                setQuestionsPage(1); // Reset to first page
+                              }}
                             />
                             <Label htmlFor="emptyExplanation">
                               Questions without explanation
                             </Label>
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSearchText("");
+                              setHasEmptyExplanation(false);
+                              setQuestionsPage(1);
+                            }}
+                          >
+                            Clear Filters
+                          </Button>
                         </div>
                       </div>
                     </div>
