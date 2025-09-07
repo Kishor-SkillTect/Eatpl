@@ -71,6 +71,16 @@ export default function GenericSectionTest({
 
     if (quizData.length > 0) {
       let index = 1;
+      
+      // First pass: group questions by ID to count options
+      const questionGroups = quizData.reduce((groups: any, curr: any) => {
+        if (!groups[curr.id]) {
+          groups[curr.id] = [];
+        }
+        groups[curr.id].push(curr);
+        return groups;
+      }, {});
+
       const filteredQuestions = Object.values(
         quizData.reduce((acc: any, curr: any) => {
           if (!acc[curr.id]) {
@@ -79,6 +89,7 @@ export default function GenericSectionTest({
               question_text: curr.question_text,
               question_id: curr.question_id,
               sequence: index,
+              optionCount: questionGroups[curr.id].length,
             };
             index++;
           }
@@ -86,10 +97,13 @@ export default function GenericSectionTest({
           acc[curr.id][optionKey] = curr.option_text;
           acc[curr.id].featured_img = curr.featured_img;
 
+          // Handle explanation and correct answer logic
+          const isSingleOptionQuestion = acc[curr.id].optionCount === 1;
+          
           if (
             curr.isCorrect ||
-            (acc[curr.id].correct_answer === undefined &&
-              curr.optionOrder === 3)
+            (acc[curr.id].correct_answer === undefined && curr.optionOrder === 3) ||
+            isSingleOptionQuestion
           ) {
             let rawHTML = curr.explaination;
             rawHTML = rawHTML?.replace(/\\n/g, "<br/>").replace(/\\"/g, '"');
@@ -98,6 +112,7 @@ export default function GenericSectionTest({
             acc[curr.id].explanation_text = DOMPurify.sanitize(rawHTML);
             acc[curr.id].explaination_img = curr.explaination_img;
             acc[curr.id].tooltip = curr.tooltip;
+            acc[curr.id].is_single_option = isSingleOptionQuestion;
           }
 
           return acc;
@@ -586,62 +601,65 @@ export default function GenericSectionTest({
                           { key: "B", text: currentQuestion.option_b },
                           { key: "C", text: currentQuestion.option_c },
                           { key: "D", text: currentQuestion.option_d },
-                        ].map((option) => {
-                          const isSelected =
-                            selectedAnswers[currentQuestion.id] === option.key;
-                          const isCorrect =
-                            currentQuestion.correct_answer === option.key;
-                          const hasAnswered =
-                            currentQuestion.id in selectedAnswers;
+                        ]
+                          .filter((option) => option.text) // Only show options that have text
+                          .map((option) => {
+                            const isSelected =
+                              selectedAnswers[currentQuestion.id] === option.key;
+                            const isCorrect =
+                              currentQuestion.correct_answer === option.key;
+                            const hasAnswered =
+                              currentQuestion.id in selectedAnswers;
+                            const isSingleOption = currentQuestion.is_single_option;
 
-                          let buttonClass = "";
-                          if (hasAnswered) {
-                            if (isSelected && !isCorrect) {
-                              buttonClass =
-                                "bg-red-500 text-white border-red-500";
-                            } else if (isCorrect) {
-                              buttonClass =
-                                "bg-green-500 text-white border-green-500";
-                            } else {
-                              buttonClass = "bg-gray-100 text-gray-600";
-                            }
-                          } else {
-                            buttonClass = isSelected
-                              ? "bg-blue-600 text-white"
-                              : "bg-white text-black hover:bg-gray-50";
-                          }
-
-                          return (
-                            <Button
-                              key={option.key}
-                              variant="outline"
-                              className={cn(
-                                "w-full text-left justify-start p-3 sm:p-4 h-auto min-h-[3rem] whitespace-normal break-words",
-                                buttonClass,
-                              )}
-                              onClick={() =>
-                                handleAnswerSelect(
-                                  currentQuestion.id,
-                                  option.key,
-                                )
+                            let buttonClass = "";
+                            if (hasAnswered) {
+                              if (isSelected && !isCorrect) {
+                                buttonClass =
+                                  "bg-red-500 text-white border-red-500";
+                              } else if (isCorrect || (isSingleOption && isSelected)) {
+                                buttonClass =
+                                  "bg-green-500 text-white border-green-500";
+                              } else {
+                                buttonClass = "bg-gray-100 text-gray-600";
                               }
-                              disabled={hasAnswered}
-                            >
-                              <span className="font-semibold mr-2 sm:mr-3 flex-shrink-0">
-                                {option.key}.
-                              </span>
-                              <span className="flex-1 text-left leading-relaxed">
-                                {option.text}
-                              </span>
-                              {hasAnswered && isCorrect && (
-                                <span className="ml-2">✓</span>
-                              )}
-                              {hasAnswered && isSelected && !isCorrect && (
-                                <span className="ml-2">✗</span>
-                              )}
-                            </Button>
-                          );
-                        })}
+                            } else {
+                              buttonClass = isSelected
+                                ? "bg-blue-600 text-white"
+                                : "bg-white text-black hover:bg-gray-50";
+                            }
+
+                            return (
+                              <Button
+                                key={option.key}
+                                variant="outline"
+                                className={cn(
+                                  "w-full text-left justify-start p-3 sm:p-4 h-auto min-h-[3rem] whitespace-normal break-words",
+                                  buttonClass,
+                                )}
+                                onClick={() =>
+                                  handleAnswerSelect(
+                                    currentQuestion.id,
+                                    option.key,
+                                  )
+                                }
+                                disabled={hasAnswered}
+                              >
+                                <span className="font-semibold mr-2 sm:mr-3 flex-shrink-0">
+                                  {isSingleOption ? "" : `${option.key}.`}
+                                </span>
+                                <span className="flex-1 text-left leading-relaxed">
+                                  {option.text}
+                                </span>
+                                {hasAnswered && (isCorrect || (isSingleOption && isSelected)) && (
+                                  <span className="ml-2">✓</span>
+                                )}
+                                {hasAnswered && isSelected && !isCorrect && !isSingleOption && (
+                                  <span className="ml-2">✗</span>
+                                )}
+                              </Button>
+                            );
+                          })}
                       </div>
 
                       {/* Show explanation immediately when answer is selected */}
