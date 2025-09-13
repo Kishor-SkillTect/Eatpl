@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Clock, Search, Play, Plane } from "@/components/Icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import Subjects from "./Subjects";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -81,6 +82,8 @@ export default function Home() {
             />
           </div>
         </div>
+
+          <Subjects showBackToHome={false}/>
 
         {/* Subject Grid */}
         {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

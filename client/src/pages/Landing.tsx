@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { Rocket, Database, BarChart3, Clock, Smartphone, GraduationCap, UserCheck, Search, Play, Plane } from '@/components/Icons';
 import { useState } from 'react';
+import Subjects from "./Subjects";
 
 export default function Landing() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,6 +121,8 @@ export default function Landing() {
             />
           </div>
         </div>
+
+       <Subjects showBackToHome={false}/>
 
         {/* Subject Grid */}
         {/* <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

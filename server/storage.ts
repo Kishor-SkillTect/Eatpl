@@ -1,5 +1,6 @@
 import {
   users,
+  subscriptions,
   subjects,
   // chapters,
   // sections,
@@ -189,6 +190,15 @@ export class DatabaseStorage implements IStorage {
         passwordHash,
       })
       .returning();
+
+       // Insert subscription if planDuration provided
+  if (userData.planDuration) {
+  await db.insert(subscriptions).values({
+    user_id: user.id,
+    plan_duration: userData.planDuration,
+    subscribed_at: new Date(),
+  });
+}
 
     return user;
   }

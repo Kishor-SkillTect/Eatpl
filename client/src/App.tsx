@@ -127,6 +127,12 @@ function Router() {
             </Suspense>
           </Route>
 
+          <Route path="/question-bank">
+            <Suspense fallback={<PageLoader />}>
+              <Subjects showBackToHome = {false} />
+            </Suspense>
+          </Route>
+
           {/* Public pages - accessible to all users */}
           {/* <Route path="/question-bank">
             <Suspense fallback={<PageLoader />}>
