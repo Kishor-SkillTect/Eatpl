@@ -1,0 +1,68 @@
+{
+  "terraform": {
+    "required_providers": {
+      "google": {
+        "source": "hashicorp/google",
+        "version": "~> 6.0"
+      },
+      "google-beta": {
+        "source": "hashicorp/google-beta",
+        "version": "~> 7.17.0"
+      },
+      "archive": {
+        "source": "hashicorp/archive",
+        "version": "~> 2.6"
+      },
+      "time": {
+        "source": "hashicorp/time",
+        "version": "0.9.1"
+      }
+    }
+  },
+  "provider": {
+    "google": {
+      "project": "polar-winter-485511-e5",
+      "region": "us-east1",
+      "credentials": "./gcp-service-account.json"
+    },
+    "google-beta": {
+      "project": "polar-winter-485511-e5",
+      "region": "us-east1",
+      "credentials": "./gcp-service-account.json"
+    }
+  },
+  "resource": {
+    "google_storage_bucket": {
+      "storage_bucket_1": {
+        "name": "test-case-1001-001",
+        "location": "US-EAST1",
+        "storage_class": "STANDARD",
+        "depends_on": [],
+        "uniform_bucket_level_access": false,
+        "public_access_prevention": "inherited",
+        "lifecycle_rule": [
+          {
+            "condition": {
+              "age": 365
+            },
+            "action": {
+              "type": "Delete"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "variable": {
+    "gcp_project_id": {
+      "description": "GCP Project ID",
+      "type": "string",
+      "default": "polar-winter-485511-e5"
+    },
+    "gcp_region": {
+      "description": "GCP Region",
+      "type": "string",
+      "default": "us-east1"
+    }
+  }
+}
