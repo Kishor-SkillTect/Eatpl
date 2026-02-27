@@ -1,0 +1,34 @@
+{
+  "id": 2220,
+  "name": "wewewewe",
+  "description": "",
+  "provider": "gcp",
+  "region": "us-east-1",
+  "createdAt": "2026-02-27T19:02:58.246Z",
+  "components": [
+    {
+      "id": "gcp-storage-1772218653582",
+      "type": "cloudComponent",
+      "position": {
+        "x": 141,
+        "y": 247
+      },
+      "data": {
+        "componentType": "gcp-storage",
+        "type": "gcp-storage",
+        "name": "GCP-STORAGE-c5d63h",
+        "config": {
+          "projectId": "polar-winter-485511-e5",
+          "bucketName": "wewewewe12121212",
+          "locationType": "Region",
+          "location": "australia-southeast1",
+          "storageClass": "Standard"
+        },
+        "validationError": false,
+        "deploymentStep": 1,
+        "deploymentStatus": "success"
+      }
+    }
+  ],
+  "connections": []
+}
