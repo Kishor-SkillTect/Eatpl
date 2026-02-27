@@ -1,0 +1,33 @@
+{
+  "id": 2210,
+  "name": "Hub-test-2",
+  "description": "",
+  "provider": "gcp",
+  "region": "us-east-1",
+  "createdAt": "2026-02-27T08:08:38.768Z",
+  "components": [
+    {
+      "id": "gcp-storage-1772179066217",
+      "type": "cloudComponent",
+      "position": {
+        "x": 176,
+        "y": 276
+      },
+      "data": {
+        "componentType": "gcp-storage",
+        "type": "gcp-storage",
+        "name": "GCP-STORAGE-oe4u0g",
+        "config": {
+          "location": "us-east1",
+          "projectId": "polar-winter-485511-e5",
+          "bucketName": "test-case-1001-001",
+          "locationType": "Region",
+          "storageClass": "Standard"
+        },
+        "validationError": false,
+        "deploymentStatus": "success"
+      }
+    }
+  ],
+  "connections": []
+}
