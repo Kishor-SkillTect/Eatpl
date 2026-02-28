@@ -1,0 +1,137 @@
+{
+  "terraform": {
+    "required_providers": {
+      "google": {
+        "source": "hashicorp/google",
+        "version": "~> 6.0"
+      },
+      "google-beta": {
+        "source": "hashicorp/google-beta",
+        "version": "~> 7.17.0"
+      },
+      "archive": {
+        "source": "hashicorp/archive",
+        "version": "~> 2.6"
+      },
+      "time": {
+        "source": "hashicorp/time",
+        "version": "0.9.1"
+      }
+    }
+  },
+  "provider": {
+    "google": {
+      "project": "polar-winter-485511-e5",
+      "region": "GLOBAL",
+      "credentials": "./gcp-service-account.json"
+    },
+    "google-beta": {
+      "project": "polar-winter-485511-e5",
+      "region": "GLOBAL",
+      "credentials": "./gcp-service-account.json"
+    }
+  },
+  "resource": {
+    "google_compute_backend_service": {
+      "lb_0_backend": {
+        "name": "lb-test-hub-01-backend",
+        "project": "polar-winter-485511-e5",
+        "protocol": "HTTP",
+        "load_balancing_scheme": "EXTERNAL_MANAGED",
+        "session_affinity": "NONE",
+        "health_checks": [
+          "${google_compute_health_check.lb_0_hc.self_link}"
+        ],
+        "backend": [],
+        "lifecycle": {
+          "create_before_destroy": true
+        },
+        "depends_on": [
+          "google_compute_health_check.lb_0_hc"
+        ]
+      }
+    },
+    "google_compute_url_map": {
+      "lb_0_url_map": {
+        "name": "lb-test-hub-01-url-map",
+        "project": "polar-winter-485511-e5",
+        "default_service": "${google_compute_backend_service.lb_0_backend.self_link}",
+        "lifecycle": {
+          "create_before_destroy": true
+        }
+      }
+    },
+    "google_compute_target_http_proxy": {
+      "lb_0_proxy": {
+        "name": "lb-test-hub-01-proxy",
+        "project": "polar-winter-485511-e5",
+        "url_map": "${google_compute_url_map.lb_0_url_map.self_link}",
+        "depends_on": [
+          "google_compute_url_map.lb_0_url_map"
+        ],
+        "lifecycle": {
+          "create_before_destroy": true
+        }
+      }
+    },
+    "google_compute_global_forwarding_rule": {
+      "lb_0_fwd": {
+        "name": "lb-test-hub-01-fwd",
+        "project": "polar-winter-485511-e5",
+        "port_range": "80",
+        "ip_protocol": "TCP",
+        "load_balancing_scheme": "EXTERNAL_MANAGED",
+        "target": "${google_compute_target_http_proxy.lb_0_proxy.self_link}",
+        "depends_on": [
+          "google_compute_firewall.lb_0_fw",
+          "google_compute_backend_service.lb_0_backend",
+          "google_compute_health_check.lb_0_hc"
+        ]
+      }
+    },
+    "google_compute_firewall": {
+      "lb_0_fw": {
+        "name": "lb-test-hub-01-lb-0-7618-allow-hc",
+        "project": "polar-winter-485511-e5",
+        "network": "default",
+        "allow": [
+          {
+            "protocol": "tcp",
+            "ports": [
+              "80"
+            ]
+          }
+        ],
+        "source_ranges": [
+          "35.191.0.0/16",
+          "130.211.0.0/22",
+          "10.0.0.0/23"
+        ]
+      }
+    },
+    "google_compute_health_check": {
+      "lb_0_hc": {
+        "name": "lb-test-hub-01-hc-5517",
+        "project": "polar-winter-485511-e5",
+        "http_health_check": {
+          "port": 80
+        },
+        "lifecycle": {
+          "create_before_destroy": true
+        }
+      }
+    }
+  },
+  "variable": {
+    "gcp_project_id": {
+      "description": "GCP Project ID",
+      "type": "string",
+      "default": "polar-winter-485511-e5"
+    },
+    "gcp_region": {
+      "description": "GCP Region",
+      "type": "string",
+      "default": "GLOBAL"
+    }
+  }
+}
