@@ -1,0 +1,48 @@
+{
+  "id": 2227,
+  "name": "hub-test-lb",
+  "description": "",
+  "provider": "gcp",
+  "region": "us-east-1",
+  "createdAt": "2026-02-28T16:22:36.469Z",
+  "components": [
+    {
+      "id": "gcp-lb-1772294640701",
+      "type": "cloudComponent",
+      "position": {
+        "x": 394,
+        "y": 156
+      },
+      "data": {
+        "componentType": "gcp-lb",
+        "type": "gcp-lb",
+        "name": "GCP-LB-v1r9pr",
+        "config": {
+          "port": 80,
+          "scope": "REGIONAL",
+          "region": "asia-east2",
+          "subnet": "default",
+          "network": "default",
+          "protocol": "HTTP",
+          "enableSsl": false,
+          "projectId": "polar-winter-485511-e5",
+          "ip_protocol": "TCP",
+          "proxyIpRange": "172.16.0.0/23",
+          "enableLogging": false,
+          "sslPrivateKey": "",
+          "createFirewall": true,
+          "sslCertificate": "",
+          "sessionAffinity": "NONE",
+          "loadBalancerName": "lb-test-hub-01",
+          "loadBalancerType": "REGIONAL_EXTERNAL",
+          "load_balancing_scheme": "EXTERNAL",
+          "loadBalancingAlgorithm": "ROUND_ROBIN",
+          "createProxySubnet": true
+        },
+        "validationError": false,
+        "deploymentStatus": "success"
+      }
+    }
+  ],
+  "connections": []
+}
